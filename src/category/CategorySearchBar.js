@@ -1,75 +1,60 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Form, Button, Row, Col } from "react-bootstrap"; // Import Row and Col from react-bootstrap
+import "./custom.css";
 
 const CategorySearchBar = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();  // useNavigate hook for redirection
+  const [query, setQuery] = useState("");
+  const [placeholder, setPlaceholder] = useState("Search for a category...");
+  const navigate = useNavigate();
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      alert('Please enter a search term');
-      return;
-    }
+  const titles = [
+    "Search for a category...",
+    "Search Nagpur's hotels...",
+    "Search Nagpur's schools...",
+    "Search Nagpur's colleges...",
+    "Find Everything with NagpurDial...",
+  ];
 
-    setIsLoading(true);
-    setError(null);
+  useEffect(() => {
+    let index = 0;
+    const rotateTitle = () => {
+      setPlaceholder(titles[index]);
+      index = (index + 1) % titles.length;
+    };
 
-    try {
-      const [category, ...queryParts] = searchQuery.trim().split(' ');
-      const searchTerm = queryParts.join(' ');
+    rotateTitle(); // Set the initial placeholder
+    const intervalId = setInterval(rotateTitle, 3000); // Rotate the placeholder every 3 seconds
 
-      if (!['restaurant', 'beauty_parlour', 'hotels'].includes(category)) {
-        alert('Invalid category. Use "restaurant" or "beauty_parlour"');
-        return;
-      }
+    return () => clearInterval(intervalId); // Cleanup the interval on component unmount
+  }, []);
 
-      const url = searchTerm
-        ? `http://localhost:30000/api/${category}?query=${encodeURIComponent(searchTerm)}`
-        : `http://localhost:30000/api/${category}`;
-
-      const response = await axios.get(url);
-
-      if (response.data && response.data.length > 0) {
-        // Redirect to the results page and pass the data in the state
-        navigate('/categorysearchresults', { state: { results: response.data } });
-      } else {
-        setError('No results found');
-      }
-    } catch (error) {
-      console.error('Error searching:', error);
-      setError('An error occurred while searching. Please try again later.');
-    } finally {
-      setIsLoading(false);
+  const handleSearch = (e) => {
+    e.preventDefault(); // Prevent default form submission behavior
+    if (query.trim()) {
+      navigate(`/results/${encodeURIComponent(query)}`);
     }
   };
 
   return (
-    <div className="container mb-3">
-      <div className="d-flex flex-column flex-md-row align-items-center">
-        {/* Search Input and Button in a Single Row */}
-        <div className="input-group mb-6 flex-grow-1 mx-2">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search for nagpur's businesses category"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button
-            className="btn btn-primary mx-2"
-            onClick={handleSearch}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Searching...' : 'Search'}
-          </button>
-        </div>
-      </div>
-
-      {/* Error Message */}
-      {error && <div className="alert alert-danger mt-2">{error}</div>}
+    <div className="container">
+      <Form onSubmit={handleSearch}>
+        <Row className="align-items-center"> {/* Align items vertically */}
+          <Col xs={9}> {/* Adjust column widths as needed */}
+            <Form.Control
+              type="text"
+              placeholder={placeholder} // Dynamic placeholder
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </Col>
+          <Col xs={3}> {/* Button takes remaining space */}
+            <Button type="submit" variant="primary" className="w-100"> {/* Full-width button */}
+              Search
+            </Button>
+          </Col>
+        </Row>
+      </Form>
     </div>
   );
 };

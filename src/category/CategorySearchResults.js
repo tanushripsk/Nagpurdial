@@ -1,19 +1,43 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Button } from 'react-bootstrap';
-import './custom.css';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Container, Row, Col, Button, Pagination } from "react-bootstrap";
+
 const CategorySearchResults = () => {
-  const location = useLocation(); // Get the passed search results
-  const { results } = location.state || {}; // Get results from location state
-
+  const { query } = useParams(); // Get the search query from the URL
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const resultsPerPage = 10; // Number of results per page (updated to 10)
+  const resultsPerPage = 10; // Number of results per page
 
-  if (!results || results.length === 0) {
-    return <div className="alert alert-warning">No results found</div>;
-  }
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const response = await fetch("http://localhost:30000/api/category", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: query }),
+        });
 
-  // Pagination logic
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+
+        const data = await response.json();
+        setResults(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [query]);
+
+  // Pagination calculations
   const indexOfLastResult = currentPage * resultsPerPage;
   const indexOfFirstResult = indexOfLastResult - resultsPerPage;
   const currentResults = results.slice(indexOfFirstResult, indexOfLastResult);
@@ -25,130 +49,92 @@ const CategorySearchResults = () => {
     }
   };
 
+  if (loading) {
+    return <div className="container">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="alert alert-danger container">Error: {error}</div>;
+  }
+
+  if (!results || results.length === 0) {
+    return <div className="alert alert-warning container">No results found</div>;
+  }
+
   return (
-    <div className="container">
-      {/* Loop through the results and display them */}
-      <div className="row">
-        {currentResults.map((item) => {
-          // Get the first image from the list of image URLs
-          const imageUrl = item.image_urls && item.image_urls[0];
-
-          return (
-            <div className="container" key={item.id}>
-              <div className="beauty">
-                <div className="col-md-12 mb-4">
-                  <div className="d-flex shadow-sm border border-light rounded-3">
-                    {/* Display a single image (the first one) */}
-                    <div className="col-md-2 mx-4 mt-3">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={item.name}
-                          className="d-block w-60"
-                          style={{
-                            height: "200px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <img
-                          src="/path/to/default-image.jpg"
-                          alt="Default"
-                          className="d-block w-60"
-                          style={{ height: "200px", objectFit: "cover" }}
-                        />
-                      )}
-                    </div>
-<div className="col-md-1"></div>
-                    {/* Item Content */}
-                    <div className="col-md-9 d-flex flex-column justify-content-between p-3">
-                      <div>
-                        <h4 className="card-title" style={{ color: "green", fontWeight: "bold" }}>
-                          {item.name}
-                        </h4>
-                        <p className="card-text">
-                          <strong>Address:</strong> {item.address.street}, {item.address.city}
-                        </p>
-
-                        {/* Replace the phone number with WhatsApp button */}
-                        <a
-                          href={`https://wa.me/${item.phone_numbers[0]?.number}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Button variant="success" className="mt-3">
-                            <i className="fa fa-whatsapp" style={{ fontSize: "20px" }}></i>
-                            &nbsp; Contact via WhatsApp
-                          </Button>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+    <Container>
+      <h4 className="mt-4 mb-4">
+        <strong>Search Results for "{query}"</strong>
+      </h4>
+      <p className="text-muted">
+        Found <strong>{results.length}</strong> entries.
+      </p>
+      <Row className="container">
+        {currentResults.map((item) => (
+          <Col key={item._id} md={12} className="mb-3 beauty">
+            <div className="shadow-sm border border-light rounded-3 p-3 d-flex">
+              <div className="me-3 col-lg-4">
+                <img
+                  src={item.image_urls?.[0] || "/default-image.jpg"}
+                  alt={item.name}
+                  className="img-fluid rounded"
+                  style={{ width: "300px", height: "200px", objectFit: "cover" }}
+                />
+              </div>
+              <div>
+                <h4 style={{ color: "green", fontWeight: "bold" }}>{item.name}</h4>
+                <p>
+                  <strong>Address:</strong> {item.address?.street}, {item.address?.city}
+                </p>
+                <div>
+                  <strong>Review:</strong>{" "}
+                  <span style={{ color: "gold", fontSize: "1.2rem" }}>
+                    {[...Array(5)].map((_, i) => (
+                      <i key={i} className="fa fa-star"></i>
+                    ))}
+                  </span>
                 </div>
+                <Button
+                  variant="success"
+                  className="mt-3"
+                  href={`https://wa.me/${item.phone_numbers?.[0]?.number}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i className="fa fa-whatsapp" style={{ fontSize: "20px" }}></i>
+                  &nbsp; Contact via WhatsApp
+                </Button>
               </div>
             </div>
-          );
-        })}
-      </div>
+          </Col>
+        ))}
+      </Row>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       {results.length > resultsPerPage && (
-        <div className="d-flex justify-content-center mt-4">
-          {/* Previous Page Button */}
-          <button
-            className="btn btn-secondary mx-2"
-            onClick={() => changePage(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-
-          {/* Preview of Previous 3 Pages */}
-          <div className="pagination-preview mx-2">
-            {Array.from({ length: 3 }, (_, i) => currentPage - i - 1)
-              .filter((pageNum) => pageNum >= 1)
-              .map((pageNum) => (
-                <button
-                  key={pageNum}
-                  className="btn btn-light mx-1"
-                  onClick={() => changePage(pageNum)}
-                >
-                  {pageNum}
-                </button>
-              ))}
-          </div>
-
-          {/* Current Page Indicator */}
-          <span className="mx-2">
-            Page {currentPage} of {totalPages}
-          </span>
-
-          {/* Preview of Next 3 Pages */}
-          <div className="pagination-preview mx-2">
-            {Array.from({ length: 3 }, (_, i) => currentPage + i + 1)
-              .filter((pageNum) => pageNum <= totalPages)
-              .map((pageNum) => (
-                <button
-                  key={pageNum}
-                  className="btn btn-light mx-1"
-                  onClick={() => changePage(pageNum)}
-                >
-                  {pageNum}
-                </button>
-              ))}
-          </div>
-
-          {/* Next Page Button */}
-          <button
-            className="btn btn-secondary mx-2"
-            onClick={() => changePage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
+        <div className="d-flex justify-content-center align-items-center mt-4">
+          <Pagination>
+            <Pagination.Prev
+              onClick={() => changePage(currentPage - 1)}
+              disabled={currentPage === 1}
+            />
+            {[...Array(totalPages)].map((_, i) => (
+              <Pagination.Item
+                key={i + 1}
+                active={i + 1 === currentPage}
+                onClick={() => changePage(i + 1)}
+              >
+                {i + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              onClick={() => changePage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            />
+          </Pagination>
         </div>
       )}
-    </div>
+    </Container>
   );
 };
 

@@ -4,8 +4,8 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const Locations = require("./models/Locations");
-const Category = require('./models/Category');
+const Location = require("./models/Locations");
+const Category = require("./models/Category");
 var jwt = require("jsonwebtoken");
 const jwt_key = "gayatrimam@123";
 
@@ -29,15 +29,10 @@ app.use(
 app.use(express.json());
 app.use(bodyParser.json());
 
-
-
-mongoose.connect(
-  "mongodb://localhost:27017/NagpurDial1",
-  {
-    // useNewUrlParser: true,
-    // useUnifiedTopology: true,
-  }
-);
+mongoose.connect("mongodb://localhost:27017/NagpurDial1", {
+  // useNewUrlParser: true,
+  // useUnifiedTopology: true,
+});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
@@ -96,19 +91,30 @@ app.post("/api/search", async (req, res) => {
 });
 
 // Routes for search by business name and address as well
-app.post("/api/location", async (req, res) => {
-  const { locationsName } = req.body;
+app.get("/api/locations/search", async (req, res) => {
+  const { locationsName } = req.query;  // Using query parameters instead of the body
+
+  // Validate the input to ensure it's a non-empty string
   if (typeof locationsName !== "string" || locationsName.trim() === "") {
     return res.status(400).json({ message: "Invalid input" });
   }
+
   try {
-    const locations = await Locations.find({
+    // Perform search using $or to match either the name or location field
+    const locations = await Location.find({
       $or: [
-        { description: { $regex: locationsName, $options: "i" } },
-        { name: { $regex: locationsName, $options: "i" } },
-      ],
+        { name: { $regex: locationsName, $options: "i" } },      // Search in the name field
+        { location: { $regex: locationsName, $options: "i" } }   // Search in the location field
+      ]
     });
-    res.json(locations);
+
+    // If no matching locations were found, send a 404 response
+    if (locations.length === 0) {
+      return res.status(404).json({ message: "No matching locations found." });
+    }
+
+    // Return the matching locations
+    res.status(200).json(locations);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -128,7 +134,6 @@ app.post("/freelisting", upload.array("files"), async (req, res) => {
       contentType: file.mimetype,
     }));
 
-    // Create a new Upload document
     const newUpload = new Upload({
       files: filesArray,
       businessname: req.body.name,
@@ -149,7 +154,7 @@ app.post("/freelisting", upload.array("files"), async (req, res) => {
   }
 });
 
-// schema for login
+// Schema for login
 app.use(bodyParser.json());
 const userSchema = new mongoose.Schema({
   email: String,
@@ -175,45 +180,58 @@ app.post("/login", async (req, res) => {
   }
 });
 
-
-
 // api for category
-app.get('/api/:category', async (req, res) => {
-  const category = req.params.category.replace(/_/g, ' '); // Replace underscores with spaces for lookup
-  const query = req.query.query || ''; // Search query from URL
+// app.get('/api/:categoryName', async (req, res) => {
+//   const { categoryName } = req.params; // Get the category name from the URL path
 
-  console.log('Received category:', category);
-  console.log('Search query:', query);
+//   if (!categoryName || categoryName.trim() === "") {
+//     return res.status(400).json({ message: "Category name is required" });
+//   }
 
-  // Check if category is valid
-  if (!['restaurant', 'beauty parlour','hotels'].includes(category)) {
-    return res.status(404).json({ message: 'Invalid category' });
+//   try {
+//     // Fetch data from the database where category matches
+//     const categories = await Category.find({
+//       categories: { $regex: categoryName, $options: "i" }, // Case-insensitive match
+//     });
+
+//     // Check if no data is found
+//     if (categories.length === 0) {
+//       return res.status(404).json({ message: `No data found for category: ${categoryName}` });
+//     }
+
+//     // Return matched data
+//     res.json(categories);
+//   } catch (error) {
+//     console.error("Error fetching data:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+
+app.post("/api/category", async (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: "Name is required" });
   }
 
   try {
-    // Fetch the category data from MongoDB
-    const categoryData = await Category.find({ category: category });
+    // Search for matching categories
+    const categories = await Category.find({
+      categories: { $regex: name, $options: "i" }, // Search by categories field using case-insensitive regex
+    });
 
-    // If search query is provided, filter the results by name
-    let results = categoryData;
-    if (query.trim()) {
-      results = results.filter(item =>
-        item.name.toLowerCase().includes(query.toLowerCase())
-      );
+    if (!categories.length) {
+      return res.status(404).json({ message: "No categories found" });
     }
 
-    // If no results, return a 404 message
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'No results found' });
-    }
-
-    // Send the response with results
-    res.json(results);
+    res.status(200).json(categories);
   } catch (error) {
-    console.error('Error fetching data from database:', error);
-    res.status(500).json({ message: 'Server error while fetching data' });
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 
 

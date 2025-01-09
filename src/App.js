@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
@@ -19,12 +19,9 @@ import Nav from "./Header & Footer/Nav";
 import Otp1 from "./Otp1";
 import ImageForm from "./ImageForm";
 import Footer from "./Header & Footer/Footer";
-import Location1 from "./Location/Location1";
-import SearchResults from "./Location/SearchResults";
-import Location from "./Location/Location";
+
 import LocationDetails from "./Location/LocationDetail";
 import Location2 from "./Location/Location2";
-import Location2Result from "./Location/Location2Result";
 import Advertise from "./Advertise/Advertise";
 import AdvertiseModel from "./Advertise/AdvertiseModel";
 import Businesschat from "./Businesschat/Businesschart";
@@ -34,8 +31,8 @@ import JumbotronRow from "./Admin/JumbotronRow";
 import Image from "./Admin/Image";
 import LogoutButton from "./Admin/Logout";
 
-import CategorySearchBar from './category/CategorySearchBar';
-import CategorySearchResults from './category/CategorySearchResults';
+import CategorySearchBar from "./category/CategorySearchBar";
+import CategorySearchResults from "./category/CategorySearchResults";
 
 // Import other components
 import InternationalSim from "./components/InternationalSim";
@@ -78,9 +75,7 @@ import Wedding from "./components/Wedding";
 import Restro from "./components/Restro";
 import Store from "./components/Store";
 
-
-const App = ()=> {
-
+const App = () => {
   return (
     <NoteState>
       <Router>
@@ -99,12 +94,11 @@ const App = ()=> {
           <Route exact path="/home1" element={<Home1 />} />
           <Route exact path="/about1" element={<About1 />} />
           <Route exact path="/imageform" element={<ImageForm />} />
-          <Route exact path="/location" element={<Location />} />
+
           <Route path="/location/:query" element={<LocationDetails />} />
-          <Route exact path="/location1" element={<Location1 />} />
-          <Route path="/search/:query" element={<SearchResults />} />
+
           <Route exact path="/location2" element={<Location2 />} />
-          <Route path="/location2/:query" element={<Location2Result />} />
+
           <Route exact path="/advertise" element={<Advertise />} />
           <Route exact path="/advertisemodel" element={<AdvertiseModel />} />
           <Route exact path="/businesschat" element={<Businesschat />} />
@@ -112,18 +106,22 @@ const App = ()=> {
           <Route exact path="/adminuse" element={<JumbotronRow />} />
           <Route exact path="/image" element={<Image />} />
           <Route exact path="/logout" element={<LogoutButton />} />
-          <Route exact path="/businesschatmodel" element={<Businesschatmodel />} />
-          
-          {/* Category Search Routes */}
-          {/* <Route path="/categorysearch" element={<CategorySearchBar onSearchResults={handleSearchResults} />} />
-          <Route path="/categorysearchresults" element={<CategorySearchResults results={results} />} /> */}
-            <Route path="/categorysearch" element={<CategorySearchBar />} />
+          <Route
+            exact
+            path="/businesschatmodel"
+            element={<Businesschatmodel />}
+          />
 
-{/* Route for the CategorySearchResults page */}
-<Route path="/categorysearchresults" element={<CategorySearchResults />} />
+          <Route path="/categorysearch" element={<CategorySearchBar />} />
+          {/* Route for the CategorySearchResults page */}
+          <Route path="/results/:query" element={<CategorySearchResults />} />
 
           {/* Other Routes */}
-          <Route exact path="/internationalsim" element={<InternationalSim />} />
+          <Route
+            exact
+            path="/internationalsim"
+            element={<InternationalSim />}
+          />
           <Route exact path="/internet" element={<Internet />} />
           <Route exact path="/invitationcard" element={<InvitationCards />} />
           <Route exact path="/jewellary" element={<Jewellary />} />
@@ -131,7 +129,11 @@ const App = ()=> {
           <Route exact path="/lawyers" element={<Lawyers />} />
           <Route exact path="/listing" element={<Listing />} />
           <Route exact path="/manufacturing" element={<Manufacturing />} />
-          <Route exact path="/marrigecertificateagents" element={<MarrigeCertificateAgents />} />
+          <Route
+            exact
+            path="/marrigecertificateagents"
+            element={<MarrigeCertificateAgents />}
+          />
           <Route exact path="/mehandi" element={<MehandiArtist />} />
           <Route exact path="/menhairstyle" element={<MenhairStyle />} />
           <Route exact path="/menmakeup" element={<MenMakeUpArtist />} />
@@ -144,7 +146,11 @@ const App = ()=> {
           <Route exact path="/pghotels" element={<PGhostel />} />
           <Route exact path="/photostudio" element={<PhotoStudio />} />
           <Route exact path="/press" element={<PressMedia />} />
-          <Route exact path="/readymadegarments" element={<ReadyMadeGarments />} />
+          <Route
+            exact
+            path="/readymadegarments"
+            element={<ReadyMadeGarments />}
+          />
           <Route exact path="/rentandhire" element={<RentAndHire />} />
           <Route exact path="/rentservice" element={<RentServices />} />
           <Route exact path="/report" element={<Report />} />
@@ -167,6 +173,6 @@ const App = ()=> {
       </Router>
     </NoteState>
   );
-}
+};
 
 export default App;

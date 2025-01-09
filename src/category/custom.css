@@ -61,3 +61,28 @@
     }
   }
   
+
+
+  .pagination-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+  }
+  
+  @media (max-width: 576px) {
+    .pagination-controls {
+      flex-direction: row;
+    }
+  
+    .pagination-controls button {
+      width: 22%;
+      margin-bottom: 5px;
+    }
+    .i1
+    {
+      font-size: 10px;
+    }
+  }
+  
